@@ -29,7 +29,7 @@ import static com.music.common.Constants.SALT;
 @RequiredArgsConstructor
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
-    private static final String DEFAULT_AVATAR = "resources/img/avatorImages/user.jpg";
+    private static final String DEFAULT_AVATAR = "img/avatorImages/user.jpg";
 
 
     private final UserMapper appUserMapper;
@@ -112,11 +112,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 data.put("url", imgPath);
                 return R.success("上传成功", data);
             } else {
-                return R.error("数据库更新头像失败");
+                return R.error("更新头像失败");
             }
         } catch (IOException e) {
             e.printStackTrace();
-            return R.fatal("图片上传磁盘失败：" + e.getMessage());
+            return R.fatal("图片上传失败：" + e.getMessage());
         }
     }
 
