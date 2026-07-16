@@ -14,10 +14,4 @@ public class SongRequest {
     private String introduction;
 
     private String lyric;
-
-    private String pic;
-
-    private String url;
-
-    private Integer duration;
 }
