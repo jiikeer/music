@@ -1,18 +1,48 @@
 package com.music.config;
 
-import lombok.Data;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
-@ConfigurationProperties(prefix = "picture-file")
-@Data
+import java.io.File;
+import java.io.IOException;
+import java.util.UUID;
+
+@Component
+@RequiredArgsConstructor
 public class FileUploadConfig {
 
-    private String path;
+    private final FileConfig fileConfig;
 
-    private String pathMapping;
+    public String upload(MultipartFile file,String folder) throws IOException {
 
-    private String serverAddress;
+        if(file==null||file.isEmpty()){
+            throw new RuntimeException("文件不能为空");
+        }
 
-    private String serverPort;
+        String suffix = "";
+
+        String filename=file.getOriginalFilename();
+
+        if(filename!=null&&filename.contains(".")){
+            suffix=filename.substring(filename.lastIndexOf("."));
+        }
+
+        String newName= UUID.randomUUID()+suffix;
+
+        String dir=fileConfig.getPath()+File.separator+folder;
+
+        File uploadDir=new File(dir);
+
+        if(!uploadDir.exists()){
+            uploadDir.mkdirs();
+        }
+
+        File dest=new File(uploadDir,newName);
+
+        file.transferTo(dest);
+
+        return "/"+folder+"/"+newName;
+    }
 
 }

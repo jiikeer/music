@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.music.common.R;
 import com.music.config.FileConfig;
+import com.music.config.FileUploadConfig;
 import com.music.mapper.UserMapper;
 import com.music.model.domain.User;
 import com.music.model.request.UserRequest;
@@ -36,7 +37,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     private final PasswordEncoder passwordEncoder;
     private final FileConfig fileConfig;
-
+    private final FileUploadConfig fileUploadConfig;
 
     @Override
     public R addUser(UserRequest registryRequest) {
@@ -101,9 +102,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public R updateUserAvatar(MultipartFile avatarFile, int id) {
         try {
-            String fullImgUrl = fileConfig.saveAvatar(avatarFile);
-            String imgPath = fullImgUrl.substring(fullImgUrl.indexOf("/avatar/"));
-
+            String imgPath=fileUploadConfig.upload(avatarFile,"avatar");
             User appUser = new User();
             appUser.setId(id);
             appUser.setAvatar(imgPath);
