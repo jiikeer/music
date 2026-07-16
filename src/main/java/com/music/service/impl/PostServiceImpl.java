@@ -114,5 +114,50 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         return R.success("查询成功", list);
     }
 
+    @Override
+    public R adminPagePost(Integer page, Integer size, Integer status) {
+        Page<Post> pageInfo = new Page<>(page, size);
+        QueryWrapper<Post> wrapper = new QueryWrapper<>();
+        if(status != null){
+            wrapper.eq("status", status);
+        }
+        wrapper.orderByDesc("create_time");
+        postMapper.selectPage(pageInfo, wrapper);
+        return R.success("查询成功", pageInfo);
+    }
+
+    @Override
+    public R adminDeletePost(Integer postId) {
+        Post post = postMapper.selectById(postId);
+        if(post == null) return R.error("帖子不存在");
+        int row = postMapper.deleteById(postId);
+        return row > 0 ? R.success("管理员删除帖子成功") : R.error("删除失败");
+    }
+
+    @Override
+    public R auditPost(Integer postId, Integer status, String auditReason) {
+        // 校验帖子是否存在
+        Post post = postMapper.selectById(postId);
+        if (post == null) {
+            return R.error("不存在该帖子");
+        }
+        // 限制合法审核状态
+        if (status != 1 && status != 2) {
+            return R.error("审核状态只能为1(通过)、2(驳回)");
+        }
+        // 封装更新字段
+        Post updatePost = new Post();
+        updatePost.setId(postId);
+        updatePost.setStatus(status);
+        updatePost.setAuditReason(auditReason);
+        updatePost.setUpdateTime(new Date());
+        // 更新数据库
+        int row = postMapper.updateById(updatePost);
+        if (row > 0) {
+            return R.success("帖子审核完成");
+        } else {
+            return R.error("审核操作未生效");
+        }
+    }
 
 }

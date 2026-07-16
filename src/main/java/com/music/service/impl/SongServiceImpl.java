@@ -1,6 +1,7 @@
 package com.music.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.music.common.R;
 import com.music.config.FileUploadConfig;
@@ -143,21 +144,41 @@ public class SongServiceImpl extends ServiceImpl<SongMapper,Song>
     }
 
     @Override
-    public R auditSong(Integer id,Integer status,String reason){
-
-        Song song=new Song();
-
-        song.setId(id);
-
-        song.setStatus(status);
-
-        song.setAuditReason(reason);
-
-        song.setUpdateTime(new Date());
-
-        songMapper.updateById(song);
-
-        return R.success("审核完成");
-
+    public R auditSong(Integer id, Integer status, String auditReason) {
+        // 校验歌曲是否存在
+        Song song = songMapper.selectById(id);
+        if (song == null) {
+            return R.error("不存在该歌曲");
+        }
+        // 校验状态只能是1/2
+        if (!status.equals(1) && !status.equals(2)) {
+            return R.error("审核状态仅支持：1通过 / 2驳回");
+        }
+        // 封装更新数据
+        Song updateSong = new Song();
+        updateSong.setId(id);
+        updateSong.setStatus(status);
+        updateSong.setAuditReason(auditReason);
+        updateSong.setUpdateTime(new Date());
+        // 执行更新
+        int rows = songMapper.updateById(updateSong);
+        if (rows > 0) {
+            return R.success("歌曲审核操作完成");
+        } else {
+            return R.error("审核失败，数据无变更");
+        }
     }
+
+    @Override
+    public R adminPageSong(Integer page, Integer size, Integer status) {
+        Page<Song> pageInfo = new Page<>(page, size);
+        QueryWrapper<Song> wrapper = new QueryWrapper<>();
+        if(status != null){
+            wrapper.eq("status", status);
+        }
+        wrapper.orderByDesc("create_time");
+        songMapper.selectPage(pageInfo, wrapper);
+        return R.success("查询成功", pageInfo);
+    }
+
 }

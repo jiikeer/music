@@ -19,4 +19,10 @@ public interface PostService extends IService<Post> {
 
     R listUserPost(Integer userId);
 
+    R adminPagePost(Integer page,Integer size,Integer status);
+
+    R adminDeletePost(Integer postId);
+
+    R auditPost(Integer postId,Integer status,String auditReason);
+
 }
