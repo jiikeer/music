@@ -89,23 +89,6 @@ public class SongServiceImpl extends ServiceImpl<SongMapper,Song>
     }
 
     @Override
-    public R pageSong(Integer page,Integer size){
-
-        Page<Song> pageInfo=new Page<>(page,size);
-
-        QueryWrapper<Song> wrapper=new QueryWrapper<>();
-
-        wrapper.eq("status",1);
-
-        wrapper.orderByDesc("create_time");
-
-        songMapper.selectPage(pageInfo,wrapper);
-
-        return R.success("查询成功",pageInfo);
-
-    }
-
-    @Override
     public R updateSong(SongRequest request, MultipartFile songFile, MultipartFile coverFile) {
         Integer songId = request.getId();
         if (songId == null) {
