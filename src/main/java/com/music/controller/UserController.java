@@ -1,9 +1,7 @@
 package com.music.controller;
 
 import com.music.common.R;
-import com.music.model.request.PasswordResetRequest;
 import com.music.model.request.UserRequest;
-import com.music.service.PasswordResetService;
 import com.music.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -15,22 +13,11 @@ public class UserController {
 
     private final UserService appUserService;
 
-    private final PasswordResetService passwordResetService;
-
     @PostMapping("/user/add")
     public R addUser(@RequestBody UserRequest registryRequest) {
         return appUserService.addUser(registryRequest);
     }
 
-    @GetMapping("/user/sendVerificationCode")
-    public R sendVerificationCode(@RequestParam String email) {
-        return passwordResetService.sendVerificationCode(email);
-    }
-
-    @PostMapping("/user/resetPassword")
-    public R resetPassword(@RequestBody PasswordResetRequest request) {
-        return passwordResetService.resetPassword(request);
-    }
 
 
     @GetMapping("/user")
