@@ -106,24 +106,40 @@ public class SongServiceImpl extends ServiceImpl<SongMapper,Song>
     }
 
     @Override
-    public R updateSong(SongRequest request){
-
-        Song song=new Song();
-
-        BeanUtils.copyProperties(request,song);
-
-        song.setUpdateTime(new Date());
-
-        if(songMapper.updateById(song)>0){
-
-            return R.success("修改成功");
-
+    public R updateSong(SongRequest request, MultipartFile songFile, MultipartFile coverFile) {
+        Integer songId = request.getId();
+        if (songId == null) {
+            return R.error("歌曲id不能为空");
+        }
+        Song oldSong = songMapper.selectById(songId);
+        if (oldSong == null) {
+            return R.error("不存在该歌曲");
         }
 
-        return R.error("修改失败");
+        BeanUtils.copyProperties(request, oldSong, "id", "userId");
 
+        try {
+            if (songFile != null && !songFile.isEmpty()) {
+                String newSongUrl = uploadUtil.upload(songFile, "song");
+                oldSong.setUrl(newSongUrl);
+            }
+            if (coverFile != null && !coverFile.isEmpty()) {
+                String newCoverUrl = uploadUtil.upload(coverFile, "songPic");
+                oldSong.setPic(newCoverUrl);
+            }
+
+            oldSong.setUpdateTime(new Date());
+            int rows = songMapper.updateById(oldSong);
+            if (rows > 0) {
+                return R.success("歌曲修改成功");
+            } else {
+                return R.error("未修改任何数据");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return R.error("修改失败：" + e.getMessage());
+        }
     }
-
 
     @Override
     public R songDetail(Integer id) {

@@ -30,12 +30,13 @@ public class SongController {
 
     }
 
-
     @PostMapping("/update")
-    public R updateSong(@RequestBody SongRequest request){
-
-        return songService.updateSong(request);
-
+    public R updateSong(
+            SongRequest request,
+            @RequestParam(value = "songFile", required = false) MultipartFile songFile,
+            @RequestParam(value = "coverFile", required = false) MultipartFile coverFile
+    ){
+        return songService.updateSong(request, songFile, coverFile);
     }
 
     @DeleteMapping("/delete")
@@ -56,13 +57,6 @@ public class SongController {
     public R detail(Integer id){
 
         return songService.songDetail(id);
-
-    }
-
-    @GetMapping("/page")
-    public R page(Integer page,Integer size){
-
-        return songService.pageSong(page,size);
 
     }
 

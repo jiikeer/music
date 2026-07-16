@@ -12,15 +12,13 @@ public interface SongService extends IService<Song> {
                  MultipartFile songFile,
                  MultipartFile coverFile);
 
-    R updateSong(SongRequest request);
+    R updateSong(SongRequest request, MultipartFile songFile, MultipartFile coverFile);
 
     R deleteSong(Integer id);
 
     R songDetail(Integer id);
 
     R userSongs(Integer userId);
-
-    R pageSong(Integer page,Integer size);
 
     R auditSong(Integer id,Integer status,String reason);
 }
