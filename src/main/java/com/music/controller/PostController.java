@@ -1,8 +1,10 @@
 package com.music.controller;
 
 import com.music.common.R;
+import com.music.model.request.PostLikeRequest;
 import com.music.model.request.PostRequest;
 import com.music.service.PostService;
+import com.music.service.PostSupportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -12,9 +14,10 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class PostController {
     private final PostService postService;
+    private final PostSupportService postSupportService;
 
     /**
-     * 接口1：发布帖子
+     * 发布帖子
      * 请求方式：POST
      * 请求类型：form-data
      * 参数：userId、title、content、coverFile(可选图片)
@@ -30,7 +33,7 @@ public class PostController {
     }
 
     /**
-     * 接口2：修改帖子
+     * 修改帖子
      * 请求方式：POST
      * 请求类型：form-data
      * 参数：id、title、content、coverFile(可选新封面)
@@ -46,7 +49,7 @@ public class PostController {
     }
 
     /**
-     * 接口3：删除帖子
+     * 删除帖子
      * 请求方式：DELETE
      * 参数：postId、loginUserId 当前登录用户id
      * 功能：校验作者权限后删除帖子
@@ -60,7 +63,7 @@ public class PostController {
     }
 
     /**
-     * 接口4：帖子详情
+     * 帖子详情
      * 请求方式：GET
      * 参数：postId
      * 功能：根据id查询单条帖子完整数据
@@ -71,7 +74,7 @@ public class PostController {
     }
 
     /**
-     * 接口5：分页查询首页已审核帖子
+     * 分页查询首页已审核帖子
      * 请求方式：GET
      * 参数：page(默认1)、size(默认10)
      * 功能：只查询status=1通过的帖子，按创建时间倒序
@@ -85,7 +88,7 @@ public class PostController {
     }
 
     /**
-     * 接口6：查询我的帖子
+     * 查询我的帖子
      * 请求方式：GET
      * 参数：userId
      * 功能：查询当前登录用户发布的所有帖子（含待审核/驳回）
@@ -93,6 +96,17 @@ public class PostController {
     @GetMapping("/user/list")
     public R userPost(@RequestParam Integer userId) {
         return postService.listUserPost(userId);
+    }
+
+    // ====================== 帖子点赞 ======================
+    /**
+     * 点赞/取消点赞帖子
+     * POST /post/like
+     * JSON PostLikeRequest
+     */
+    @PostMapping("/like")
+    public R likePost(@RequestBody PostLikeRequest request) {
+        return postSupportService.likePost(request);
     }
 
 }
