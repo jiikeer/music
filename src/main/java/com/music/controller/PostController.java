@@ -1,8 +1,10 @@
 package com.music.controller;
 
 import com.music.common.R;
+import com.music.model.request.CommentRequest;
 import com.music.model.request.PostLikeRequest;
 import com.music.model.request.PostRequest;
+import com.music.service.PostCommentService;
 import com.music.service.PostService;
 import com.music.service.PostSupportService;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class PostController {
     private final PostService postService;
     private final PostSupportService postSupportService;
-
+    private final PostCommentService postCommentService;
     /**
      * 发布帖子
      * 请求方式：POST
@@ -107,6 +109,33 @@ public class PostController {
     @PostMapping("/like")
     public R likePost(@RequestBody PostLikeRequest request) {
         return postSupportService.likePost(request);
+    }
+    // ====================== 帖子评论 ======================
+    /**
+     * 发表帖子评论/回复
+     */
+    @PostMapping("/comment/add")
+    public R addComment(@RequestBody CommentRequest request) {
+        return postCommentService.addPostComment(request);
+    }
+
+    /**
+     * 删除帖子评论
+     */
+    @DeleteMapping("/comment/delete")
+    public R delComment(
+            @RequestParam Integer commentId,
+            @RequestParam Integer userId
+    ) {
+        return postCommentService.deletePostComment(commentId, userId);
+    }
+
+    /**
+     * 查询帖子全部评论
+     */
+    @GetMapping("/comment/list")
+    public R listComment(@RequestParam Integer postId) {
+        return postCommentService.listPostComment(postId);
     }
 
 }

@@ -2,8 +2,10 @@ package com.music.controller;
 
 import com.music.common.R;
 import com.music.model.request.CollectRequest;
+import com.music.model.request.CommentRequest;
 import com.music.model.request.SongRequest;
 import com.music.service.CollectService;
+import com.music.service.SongCommentService;
 import com.music.service.SongService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +18,7 @@ public class SongController {
 
     private final SongService songService;
     private final CollectService collectService;
+    private final SongCommentService songCommentService;
 
     @PostMapping("/upload")
     public R uploadSong(
@@ -80,6 +83,36 @@ public class SongController {
     @GetMapping("/collect/list")
     public R getUserCollect(@RequestParam Integer userId) {
         return collectService.getUserCollect(userId);
+    }
+// ====================== 歌曲评论 ======================
+    /**
+     * 发表歌曲评论/回复评论
+     * POST /song/comment/add
+     */
+    @PostMapping("/comment/add")
+    public R addComment(@RequestBody CommentRequest request) {
+        return songCommentService.addSongComment(request);
+    }
+
+    /**
+     * 删除歌曲评论
+     * DELETE /song/comment/delete?commentId=1&userId=2
+     */
+    @DeleteMapping("/comment/delete")
+    public R delComment(
+            @RequestParam Integer commentId,
+            @RequestParam Integer userId
+    ) {
+        return songCommentService.deleteSongComment(commentId, userId);
+    }
+
+    /**
+     * 查询歌曲所有评论
+     * GET /song/comment/list?songId=1
+     */
+    @GetMapping("/comment/list")
+    public R listComment(@RequestParam Integer songId) {
+        return songCommentService.listSongComment(songId);
     }
 
 }
