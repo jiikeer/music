@@ -1,7 +1,9 @@
 package com.music.controller;
 
 import com.music.common.R;
+import com.music.model.request.CollectRequest;
 import com.music.model.request.SongRequest;
+import com.music.service.CollectService;
 import com.music.service.SongService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -13,7 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class SongController {
 
     private final SongService songService;
-
+    private final CollectService collectService;
 
     @PostMapping("/upload")
     public R uploadSong(
@@ -58,6 +60,26 @@ public class SongController {
 
         return songService.songDetail(id);
 
+    }
+
+    // ====================== 歌曲收藏 ======================
+    /**
+     * 收藏 / 取消收藏歌曲
+     * POST /song/collect
+     * JSON请求体 CollectRequest
+     */
+    @PostMapping("/collect")
+    public R collectSong(@RequestBody CollectRequest request) {
+        return collectService.collectSong(request);
+    }
+
+    /**
+     * 查询用户收藏的全部歌曲
+     * GET /song/collect/list?userId=xx
+     */
+    @GetMapping("/collect/list")
+    public R getUserCollect(@RequestParam Integer userId) {
+        return collectService.getUserCollect(userId);
     }
 
 }
