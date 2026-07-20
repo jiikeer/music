@@ -7,12 +7,24 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpSession;
+
 @RequiredArgsConstructor
 @RestController
 public class UserController {
 
     private final UserService appUserService;
 
+    @PostMapping("/user/login")
+    public R login(
+            @RequestBody UserRequest request,
+            HttpSession session
+    ){
+        return appUserService.loginStatus(
+                request,
+                session
+        );
+    }
     @PostMapping("/user/add")
     public R addUser(@RequestBody UserRequest registryRequest) {
         return appUserService.addUser(registryRequest);
