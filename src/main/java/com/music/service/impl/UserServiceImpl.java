@@ -30,7 +30,7 @@ import static com.music.common.Constants.SALT;
 @RequiredArgsConstructor
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
-    private static final String DEFAULT_AVATAR = "musicSystem/avatar/user.jpg";
+    private static final String DEFAULT_AVATAR = "avatar/user.jpg";
 
 
     private final UserMapper appUserMapper;

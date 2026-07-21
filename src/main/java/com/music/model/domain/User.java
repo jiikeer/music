@@ -18,7 +18,7 @@ public class User {
 
     private String password;
 
-    private Byte sex;
+    private String sex;
 
     private String phoneNum;
 
