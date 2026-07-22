@@ -22,82 +22,60 @@ public class SongController {
 
     @PostMapping("/upload")
     public R uploadSong(
-
             SongRequest request,
-
-            @RequestParam("songFile")
-            MultipartFile songFile,
-
-            @RequestParam(value="coverFile",required = false)
-            MultipartFile coverFile){
-
-        return songService.uploadSong(request,songFile,coverFile);
-
+            @RequestParam("songFile") MultipartFile songFile,
+            @RequestParam(value="coverFile",required = false) MultipartFile coverFile,
+            @RequestParam(value = "lyricFile", required = false) MultipartFile lyricFile
+    ){
+        return songService.uploadSong(request,songFile,coverFile,lyricFile);
     }
 
     @PostMapping("/update")
     public R updateSong(
             SongRequest request,
             @RequestParam(value = "songFile", required = false) MultipartFile songFile,
-            @RequestParam(value = "coverFile", required = false) MultipartFile coverFile
+            @RequestParam(value = "coverFile", required = false) MultipartFile coverFile,
+            @RequestParam(value = "lyricFile", required = false) MultipartFile lyricFile
     ){
-        return songService.updateSong(request, songFile, coverFile);
+        return songService.updateSong(request, songFile, coverFile, lyricFile);
+    }
+
+    @GetMapping("/hot")
+    public R getHotSongList(@RequestParam(required = false, defaultValue = "5") Integer limit){
+        return songService.getHotSongList(limit);
     }
 
     @DeleteMapping("/delete")
     public R deleteSong(Integer id){
-
         return songService.deleteSong(id);
-
     }
 
     @GetMapping("/user")
     public R userSongs(Integer userId){
-
         return songService.userSongs(userId);
-
     }
 
     @GetMapping("/detail")
     public R detail(Integer id){
-
         return songService.songDetail(id);
-
     }
 
     // ====================== 歌曲收藏 ======================
-    /**
-     * 收藏 / 取消收藏歌曲
-     * POST /song/collect
-     * JSON请求体 CollectRequest
-     */
     @PostMapping("/collect")
     public R collectSong(@RequestBody CollectRequest request) {
         return collectService.collectSong(request);
     }
 
-    /**
-     * 查询用户收藏的全部歌曲
-     * GET /song/collect/list?userId=xx
-     */
     @GetMapping("/collect/list")
     public R getUserCollect(@RequestParam Integer userId) {
         return collectService.getUserCollect(userId);
     }
-// ====================== 歌曲评论 ======================
-    /**
-     * 发表歌曲评论/回复评论
-     * POST /song/comment/add
-     */
+    // ====================== 歌曲评论 ======================
     @PostMapping("/comment/add")
     public R addComment(@RequestBody CommentRequest request) {
         return songCommentService.addSongComment(request);
     }
 
-    /**
-     * 删除歌曲评论
-     * DELETE /song/comment/delete?commentId=1&userId=2
-     */
     @DeleteMapping("/comment/delete")
     public R delComment(
             @RequestParam Integer commentId,
@@ -106,10 +84,6 @@ public class SongController {
         return songCommentService.deleteSongComment(commentId, userId);
     }
 
-    /**
-     * 查询歌曲所有评论
-     * GET /song/comment/list?songId=1
-     */
     @GetMapping("/comment/list")
     public R listComment(@RequestParam Integer songId) {
         return songCommentService.listSongComment(songId);

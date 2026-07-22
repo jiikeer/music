@@ -6,13 +6,21 @@ import com.music.model.domain.Song;
 import com.music.model.request.SongRequest;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 public interface SongService extends IService<Song> {
 
+    // 新增 lyricFile 参数
     R uploadSong(SongRequest request,
                  MultipartFile songFile,
-                 MultipartFile coverFile);
+                 MultipartFile coverFile,
+                 MultipartFile lyricFile);
 
-    R updateSong(SongRequest request, MultipartFile songFile, MultipartFile coverFile);
+    // 新增 lyricFile 参数
+    R updateSong(SongRequest request,
+                 MultipartFile songFile,
+                 MultipartFile coverFile,
+                 MultipartFile lyricFile);
 
     R deleteSong(Integer id);
 
@@ -24,4 +32,5 @@ public interface SongService extends IService<Song> {
 
     R auditSong(Integer id,Integer status,String auditReason);
 
+    R getHotSongList(Integer limit);
 }
