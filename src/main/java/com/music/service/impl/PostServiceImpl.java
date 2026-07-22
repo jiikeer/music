@@ -35,7 +35,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
                 String coverUrl = uploadUtil.upload(coverFile, "post");
                 post.setCover(coverUrl);
             } else {
-                post.setCover("/post/default.jpg");
+                post.setCover("/post/default.png");
             }
             post.setCreateTime(new Date());
             post.setUpdateTime(new Date());

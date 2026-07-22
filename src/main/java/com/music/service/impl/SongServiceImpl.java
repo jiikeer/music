@@ -25,7 +25,7 @@ public class SongServiceImpl extends ServiceImpl<SongMapper,Song>
 
     private final FileUploadConfig uploadUtil;
 
-    private static final String DEFAULT_AVATAR = "musicSystem/songPic/default.png";
+    private static final String DEFAULT_AVATAR = "songPic/default.png";
 
     @Override
     public R uploadSong(SongRequest request,
