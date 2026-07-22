@@ -30,4 +30,6 @@ public interface UserService extends IService<User> {
     R userOfId(Integer id);
 
     R loginStatus(UserRequest loginRequest, HttpSession session);
+
+    User findAppUserByLoginAccount(String account);
 }

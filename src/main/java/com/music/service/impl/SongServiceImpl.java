@@ -5,8 +5,12 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.music.common.R;
 import com.music.config.FileUploadConfig;
+import com.music.mapper.SingerMapper;
 import com.music.mapper.SongMapper;
+import com.music.mapper.UserMapper;
+import com.music.model.domain.Singer;
 import com.music.model.domain.Song;
+import com.music.model.domain.User;
 import com.music.model.request.SongRequest;
 import com.music.service.SongService;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +19,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -22,6 +31,10 @@ public class SongServiceImpl extends ServiceImpl<SongMapper,Song>
         implements SongService {
 
     private final SongMapper songMapper;
+
+    private final UserMapper userMapper;
+
+    private final SingerMapper singerMapper;
 
     private final FileUploadConfig uploadUtil;
 
@@ -127,6 +140,12 @@ public class SongServiceImpl extends ServiceImpl<SongMapper,Song>
     @Override
     public R songDetail(Integer id) {
         Song song = songMapper.selectById(id);
+        if (song != null && song.getSingerId() != null) {
+            Singer singer = singerMapper.selectById(song.getSingerId());
+            if (singer != null) {
+                song.setSingerName(singer.getName());
+            }
+        }
         return R.success("查询歌曲详情成功", song);
     }
 
@@ -178,7 +197,46 @@ public class SongServiceImpl extends ServiceImpl<SongMapper,Song>
         }
         wrapper.orderByDesc("create_time");
         songMapper.selectPage(pageInfo, wrapper);
+
+        // 批量填充 username
+        List<Song> records = pageInfo.getRecords();
+        Set<Integer> userIds = records.stream()
+                .map(Song::getUserId)
+                .filter(id -> id != null)
+                .collect(Collectors.toCollection(HashSet::new));
+        if (!userIds.isEmpty()) {
+            QueryWrapper<User> userWrapper = new QueryWrapper<>();
+            userWrapper.in("id", userIds);
+            Map<Integer, User> userMap = userMapper.selectList(userWrapper).stream()
+                    .collect(Collectors.toMap(User::getId, Function.identity(), (a, b) -> a));
+            records.forEach(s -> {
+                User u = userMap.get(s.getUserId());
+                if (u != null) s.setUsername(u.getUsername());
+            });
+        }
+
         return R.success("查询成功", pageInfo);
+    }
+
+    @Override
+    public R hotSongs(Integer limit) {
+        if (limit == null || limit <= 0) limit = 5;
+        QueryWrapper<Song> wrapper = new QueryWrapper<>();
+        wrapper.eq("status", 1);
+        wrapper.orderByDesc("play_count");
+        wrapper.last("LIMIT " + limit);
+        List<Song> songs = songMapper.selectList(wrapper);
+        return R.success("查询热门歌曲成功", songs);
+    }
+
+    @Override
+    public R singerSongs(Integer singerId) {
+        QueryWrapper<Song> wrapper = new QueryWrapper<>();
+        wrapper.eq("singer_id", singerId);
+        wrapper.eq("status", 1);
+        wrapper.orderByDesc("create_time");
+        List<Song> songs = songMapper.selectList(wrapper);
+        return R.success("查询成功", songs);
     }
 
 }

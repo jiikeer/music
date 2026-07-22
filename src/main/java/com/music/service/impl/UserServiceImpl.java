@@ -126,7 +126,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return appUserMapper.selectCount(queryWrapper) > 0;
     }
 
-    private User findAppUserByLoginAccount(String account) {
+    public User findAppUserByLoginAccount(String account) {
         if (StringUtils.isBlank(account)) {
             return null;
         }

@@ -1,10 +1,17 @@
 package com.music.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.music.common.R;
+import com.music.model.domain.Post;
+import com.music.model.domain.Song;
+import com.music.model.domain.User;
 import com.music.service.PostService;
 import com.music.service.SongService;
+import com.music.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.*;
 
 @RestController
 @RequestMapping("/admin")
@@ -13,11 +20,65 @@ public class AdminController {
 
     private final SongService songService;
     private final PostService postService;
+    private final UserService appUserService;
+
+    @PostMapping("/login")
+    public R login(@RequestBody Map<String, String> data, javax.servlet.http.HttpSession session) {
+        String username = data.get("username");
+        String password = data.get("password");
+        if (!appUserService.verityPasswd(username, password)) {
+            return R.error("用户名或密码错误");
+        }
+        User user = appUserService.findAppUserByLoginAccount(username);
+        session.setAttribute("username", user.getUsername());
+        Map<String, Object> result = new HashMap<>();
+        result.put("username", user.getUsername());
+        result.put("roles", Arrays.asList("admin"));
+        result.put("avatar", user.getAvatar());
+        return R.success("登录成功", result);
+    }
+
+    @GetMapping("/info")
+    public R info(javax.servlet.http.HttpSession session) {
+        String username = (String) session.getAttribute("username");
+        if (username == null) {
+            return R.error("未登录");
+        }
+        User user = appUserService.findAppUserByLoginAccount(username);
+        Map<String, Object> result = new HashMap<>();
+        result.put("username", user.getUsername());
+        result.put("roles", Arrays.asList("admin"));
+        result.put("avatar", user.getAvatar());
+        return R.success("ok", result);
+    }
+
+    // ====================== 仪表盘统计 ======================
+    @GetMapping("/dashboard")
+    public R dashboard() {
+        Map<String, Object> data = new HashMap<>();
+        // 歌曲统计
+        QueryWrapper<Song> songWrapper = new QueryWrapper<>();
+        songWrapper.eq("status", 1);
+        data.put("songCount", songService.count(songWrapper));
+        QueryWrapper<Song> pendingSongWrapper = new QueryWrapper<>();
+        pendingSongWrapper.eq("status", 0);
+        data.put("pendingSongCount", songService.count(pendingSongWrapper));
+
+        // 帖子统计
+        QueryWrapper<Post> postWrapper = new QueryWrapper<>();
+        postWrapper.eq("status", 1);
+        data.put("postCount", postService.count(postWrapper));
+        QueryWrapper<Post> pendingPostWrapper = new QueryWrapper<>();
+        pendingPostWrapper.eq("status", 0);
+        data.put("pendingPostCount", postService.count(pendingPostWrapper));
+
+        // 用户统计
+        data.put("userCount", appUserService.count());
+
+        return R.success("ok", data);
+    }
 
     // ====================== 歌曲管理模块 /admin/song ======================
-    /**
-     * 分页查询全站歌曲（管理员，可筛选审核状态 0待审核/1通过/2驳回）
-     */
     @GetMapping("/song/page")
     public R songPage(
             @RequestParam(defaultValue = "1") Integer page,
@@ -27,9 +88,6 @@ public class AdminController {
         return songService.adminPageSong(page, size, status);
     }
 
-    /**
-     * 歌曲审核：通过 / 驳回，填写驳回理由
-     */
     @PostMapping("/song/audit")
     public R auditSong(
             @RequestParam Integer id,
@@ -39,27 +97,17 @@ public class AdminController {
         return songService.auditSong(id, status, auditReason);
     }
 
-    /**
-     * 管理员删除任意歌曲（不受发布人限制）
-     */
     @DeleteMapping("/song/delete")
     public R deleteSong(@RequestParam Integer id) {
         return songService.deleteSong(id);
     }
 
-
-    /**
-     * 歌曲详情
-     */
     @GetMapping("/song/detail")
     public R songDetail(@RequestParam Integer id) {
         return songService.songDetail(id);
     }
 
     // ====================== 帖子管理模块 /admin/post ======================
-    /**
-     * 分页查询全站帖子（管理员，可筛选审核状态 0待审核/1通过/2驳回）
-     */
     @GetMapping("/post/page")
     public R postPage(
             @RequestParam(defaultValue = "1") Integer page,
@@ -69,9 +117,6 @@ public class AdminController {
         return postService.adminPagePost(page, size, status);
     }
 
-    /**
-     * 帖子审核：通过 / 驳回，填写驳回理由
-     */
     @PostMapping("/post/audit")
     public R auditPost(
             @RequestParam Integer postId,
@@ -81,17 +126,11 @@ public class AdminController {
         return postService.auditPost(postId, status, auditReason);
     }
 
-    /**
-     * 管理员删除任意帖子（不受发布人限制）
-     */
     @DeleteMapping("/post/delete")
     public R deletePost(@RequestParam Integer postId) {
         return postService.adminDeletePost(postId);
     }
 
-    /**
-     * 帖子详情
-     */
     @GetMapping("/post/detail")
     public R postDetail(@RequestParam Integer postId) {
         return postService.postDetail(postId);

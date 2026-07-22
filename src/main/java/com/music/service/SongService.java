@@ -24,4 +24,8 @@ public interface SongService extends IService<Song> {
 
     R auditSong(Integer id,Integer status,String auditReason);
 
+    R hotSongs(Integer limit);
+
+    R singerSongs(Integer singerId);
+
 }

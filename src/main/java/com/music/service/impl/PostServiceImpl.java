@@ -6,7 +6,9 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.music.common.R;
 import com.music.config.FileUploadConfig;
 import com.music.mapper.PostMapper;
+import com.music.mapper.UserMapper;
 import com.music.model.domain.Post;
+import com.music.model.domain.User;
 import com.music.model.request.PostRequest;
 import com.music.service.PostService;
 import lombok.RequiredArgsConstructor;
@@ -16,14 +18,34 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements PostService {
     private final PostMapper postMapper;
+    private final UserMapper userMapper;
     private final FileUploadConfig uploadUtil;
 
-    // 发布帖子
+    // 查询用户自己全部帖子，填充 username
+    @Override
+    public R listUserPost(Integer userId) {
+        QueryWrapper<Post> wrapper = new QueryWrapper<>();
+        wrapper.eq("user_id", userId).orderByDesc("create_time");
+        List<Post> list = postMapper.selectList(wrapper);
+        // 填充 username（用户自己的帖子，username 都是同一个，查一次即可）
+        if (!list.isEmpty()) {
+            User u = userMapper.selectById(userId);
+            if (u != null) {
+                list.forEach(p -> p.setUsername(u.getUsername()));
+            }
+        }
+        return R.success("查询成功", list);
+    }
     @Override
     @Transactional
     public R publishPost(PostRequest request) {
@@ -105,15 +127,6 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         return R.success("查询成功", pageInfo);
     }
 
-    // 查询用户自己全部帖子
-    @Override
-    public R listUserPost(Integer userId) {
-        QueryWrapper<Post> wrapper = new QueryWrapper<>();
-        wrapper.eq("user_id", userId).orderByDesc("create_time");
-        List<Post> list = postMapper.selectList(wrapper);
-        return R.success("查询成功", list);
-    }
-
     @Override
     public R adminPagePost(Integer page, Integer size, Integer status) {
         Page<Post> pageInfo = new Page<>(page, size);
@@ -123,6 +136,24 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         }
         wrapper.orderByDesc("create_time");
         postMapper.selectPage(pageInfo, wrapper);
+
+        // 批量填充 username
+        List<Post> records = pageInfo.getRecords();
+        Set<Integer> userIds = records.stream()
+                .map(Post::getUserId)
+                .filter(id -> id != null)
+                .collect(Collectors.toCollection(HashSet::new));
+        if (!userIds.isEmpty()) {
+            QueryWrapper<User> userWrapper = new QueryWrapper<>();
+            userWrapper.in("id", userIds);
+            Map<Integer, User> userMap = userMapper.selectList(userWrapper).stream()
+                    .collect(Collectors.toMap(User::getId, Function.identity(), (a, b) -> a));
+            records.forEach(p -> {
+                User u = userMap.get(p.getUserId());
+                if (u != null) p.setUsername(u.getUsername());
+            });
+        }
+
         return R.success("查询成功", pageInfo);
     }
 

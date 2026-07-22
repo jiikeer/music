@@ -115,4 +115,9 @@ public class SongController {
         return songCommentService.listSongComment(songId);
     }
 
+    @GetMapping("/hot")
+    public R hotSongs(@RequestParam(defaultValue = "5") Integer limit) {
+        return songService.hotSongs(limit);
+    }
+
 }

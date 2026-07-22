@@ -19,6 +19,8 @@ public class Song {
 
     private String introduction;
 
+    private Integer singerId;
+
     private Integer status;
 
     private String auditReason;
@@ -45,6 +47,12 @@ public class Song {
      * Song duration in seconds.
      */
     private Integer duration;
+
+    @TableField(exist = false)
+    private String username;
+
+    @TableField(exist = false)
+    private String singerName;
 
     @Override
     public String toString() {
