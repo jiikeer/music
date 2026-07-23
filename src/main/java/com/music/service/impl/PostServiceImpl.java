@@ -124,18 +124,6 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         QueryWrapper<Post> wrapper = new QueryWrapper<>();
         wrapper.eq("status", 1).orderByDesc("create_time");
         postMapper.selectPage(pageInfo, wrapper);
-        return R.success("查询成功", pageInfo);
-    }
-
-    @Override
-    public R adminPagePost(Integer page, Integer size, Integer status) {
-        Page<Post> pageInfo = new Page<>(page, size);
-        QueryWrapper<Post> wrapper = new QueryWrapper<>();
-        if(status != null){
-            wrapper.eq("status", status);
-        }
-        wrapper.orderByDesc("create_time");
-        postMapper.selectPage(pageInfo, wrapper);
 
         // 批量填充 username
         List<Post> records = pageInfo.getRecords();
@@ -150,7 +138,43 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
                     .collect(Collectors.toMap(User::getId, Function.identity(), (a, b) -> a));
             records.forEach(p -> {
                 User u = userMap.get(p.getUserId());
-                if (u != null) p.setUsername(u.getUsername());
+                if (u != null) {
+                    p.setUsername(u.getUsername());
+                    p.setAvatar(u.getAvatar());
+                }
+            });
+        }
+
+        return R.success("查询成功", pageInfo);
+    }
+
+    @Override
+    public R adminPagePost(Integer page, Integer size, Integer status) {
+        Page<Post> pageInfo = new Page<>(page, size);
+        QueryWrapper<Post> wrapper = new QueryWrapper<>();
+        if(status != null){
+            wrapper.eq("status", status);
+        }
+        wrapper.orderByDesc("create_time");
+        postMapper.selectPage(pageInfo, wrapper);
+
+        // 批量填充 username + avatar
+        List<Post> records2 = pageInfo.getRecords();
+        Set<Integer> userIds2 = records2.stream()
+                .map(Post::getUserId)
+                .filter(id -> id != null)
+                .collect(Collectors.toCollection(HashSet::new));
+        if (!userIds2.isEmpty()) {
+            QueryWrapper<User> userWrapper2 = new QueryWrapper<>();
+            userWrapper2.in("id", userIds2);
+            Map<Integer, User> userMap2 = userMapper.selectList(userWrapper2).stream()
+                    .collect(Collectors.toMap(User::getId, Function.identity(), (a, b) -> a));
+            records2.forEach(p -> {
+                User u = userMap2.get(p.getUserId());
+                if (u != null) {
+                    p.setUsername(u.getUsername());
+                    p.setAvatar(u.getAvatar());
+                }
             });
         }
 

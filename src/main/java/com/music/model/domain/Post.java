@@ -25,4 +25,7 @@ public class Post {
 
     @TableField(exist = false)
     private String username;
+
+    @TableField(exist = false)
+    private String avatar;
 }
