@@ -41,14 +41,14 @@ public class SingerServiceImpl extends ServiceImpl<SingerMapper, Singer> impleme
     public R addSinger(Singer singer) {
         singer.setCreateTime(new Date());
         singerMapper.insert(singer);
-        return R.success("添加成功");
+        return R.success("添加成功", singer.getId());
     }
 
     @Override
     public R updateSinger(Singer singer) {
         singer.setUpdateTime(new Date());
         singerMapper.updateById(singer);
-        return R.success("更新成功");
+        return R.success("更新成功", singer.getId());
     }
 
     @Override
@@ -65,7 +65,7 @@ public class SingerServiceImpl extends ServiceImpl<SingerMapper, Singer> impleme
             singer.setId(id);
             singer.setPic(picUrl);
             singerMapper.updateById(singer);
-            return R.success("上传成功");
+            return R.success("上传成功", picUrl);
         } catch (Exception e) {
             return R.error(e.getMessage());
         }
