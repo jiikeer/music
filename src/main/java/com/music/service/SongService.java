@@ -32,4 +32,7 @@ public interface SongService extends IService<Song> {
     /** Get approved songs by singer_user_id (for user homepage) */
     R songsBySingerUserId(Integer singerUserId, Integer page, Integer size);
 
+    /** Increment play count by 1 */
+    R incrementPlayCount(Integer id);
+
 }

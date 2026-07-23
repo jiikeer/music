@@ -287,4 +287,13 @@ public class SongServiceImpl extends ServiceImpl<SongMapper,Song>
         return R.success("查询成功", pageInfo);
     }
 
+    @Override
+    public R incrementPlayCount(Integer id) {
+        Song song = songMapper.selectById(id);
+        if (song == null) return R.error("歌曲不存在");
+        song.setPlayCount((song.getPlayCount() == null ? 0 : song.getPlayCount()) + 1);
+        songMapper.updateById(song);
+        return R.success("ok");
+    }
+
 }

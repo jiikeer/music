@@ -61,11 +61,18 @@ public class SongController {
 
     }
 
-    @GetMapping("/detail")
+    @PostMapping("/detail")
     public R detail(Integer id){
-
         return songService.songDetail(id);
+    }
 
+    /**
+     * 播放量+1（有效播放判定由前端触发）
+     * POST /song/{id}/play
+     */
+    @PostMapping("/{id}/play")
+    public R incrementPlay(@PathVariable Integer id) {
+        return songService.incrementPlayCount(id);
     }
 
     // ====================== 歌曲收藏 ======================
