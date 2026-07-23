@@ -10,6 +10,7 @@ public interface PostCommentService extends IService<PostComment> {
     R addPostComment(CommentRequest request);
     // 删除自己帖子评论
     R deletePostComment(Integer commentId, Integer loginUserId);
-    // 查询帖子全部评论（带用户昵称头像）
+    // 查询帖子全部评论（带用户昵称头像，userId可选判断是否已点赞）
     R listPostComment(Integer postId);
+    R listPostComment(Integer postId, Integer userId);
 }

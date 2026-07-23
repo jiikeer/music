@@ -7,6 +7,7 @@ import com.music.mapper.PostCommentMapper;
 import com.music.mapper.SongCommentMapper;
 import com.music.model.domain.PostComment;
 import com.music.model.domain.SongComment;
+import com.music.service.CommentLikeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,6 +23,7 @@ public class CommentController {
 
     private final SongCommentMapper songCommentMapper;
     private final PostCommentMapper postCommentMapper;
+    private final CommentLikeService commentLikeService;
 
     @GetMapping("")
     public R all() {
@@ -102,5 +104,14 @@ public class CommentController {
             songCommentMapper.deleteById(id);
         }
         return R.success("删除成功");
+    }
+
+    /**
+     * 获取用户点赞过的评论列表
+     * GET /comment/liked?userId=
+     */
+    @GetMapping("/liked")
+    public R getUserLikedComments(@RequestParam Integer userId) {
+        return commentLikeService.getUserLikedComments(userId);
     }
 }

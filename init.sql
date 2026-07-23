@@ -91,6 +91,16 @@ CREATE TABLE IF NOT EXISTS `song_comment` (
     like_count INT DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- 8. comment_like table (comment likes)
+CREATE TABLE IF NOT EXISTS `comment_like` (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    comment_id INT NOT NULL,
+    comment_type VARCHAR(10) NOT NULL COMMENT 'song or post',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_user_comment_type (user_id, comment_id, comment_type)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Insert test admin user (password: 123456, encoded with legacy MD5(SALT+password) = MD5('zyt123456'))
 -- The system will auto-upgrade to BCrypt on first successful login
 INSERT INTO `user` (username, password, sex, email, phone_num, introduction) VALUES

@@ -97,7 +97,7 @@ public class AdminController {
         return songService.auditSong(id, status, auditReason);
     }
 
-    @DeleteMapping("/song/delete")
+    @GetMapping("/song/delete")
     public R deleteSong(@RequestParam Integer id) {
         return songService.deleteSong(id);
     }

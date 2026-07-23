@@ -1,9 +1,11 @@
 package com.music.controller;
 
 import com.music.common.R;
+import com.music.model.request.CommentLikeRequest;
 import com.music.model.request.CommentRequest;
 import com.music.model.request.PostLikeRequest;
 import com.music.model.request.PostRequest;
+import com.music.service.CommentLikeService;
 import com.music.service.PostCommentService;
 import com.music.service.PostService;
 import com.music.service.PostSupportService;
@@ -18,6 +20,7 @@ public class PostController {
     private final PostService postService;
     private final PostSupportService postSupportService;
     private final PostCommentService postCommentService;
+    private final CommentLikeService commentLikeService;
     /**
      * 发布帖子
      * 请求方式：POST
@@ -134,8 +137,21 @@ public class PostController {
      * 查询帖子全部评论
      */
     @GetMapping("/comment/list")
-    public R listComment(@RequestParam Integer postId) {
-        return postCommentService.listPostComment(postId);
+    public R listComment(
+            @RequestParam Integer postId,
+            @RequestParam(required = false) Integer userId
+    ) {
+        return postCommentService.listPostComment(postId, userId);
+    }
+
+    /**
+     * 帖子评论点赞/取消点赞
+     * POST /post/comment/like
+     */
+    @PostMapping("/comment/like")
+    public R likeComment(@RequestBody CommentLikeRequest request) {
+        request.setCommentType("post");
+        return commentLikeService.likeComment(request);
     }
 
 }

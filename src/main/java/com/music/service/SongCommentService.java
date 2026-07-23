@@ -10,6 +10,7 @@ public interface SongCommentService extends IService<SongComment> {
     R addSongComment(CommentRequest request);
     // 删除自己的评论
     R deleteSongComment(Integer commentId, Integer loginUserId);
-    // 查询歌曲全部评论（带用户昵称头像）
+    // 查询歌曲全部评论（带用户昵称头像，userId可选判断是否已点赞）
     R listSongComment(Integer songId);
+    R listSongComment(Integer songId, Integer userId);
 }

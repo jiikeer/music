@@ -2,9 +2,11 @@ package com.music.controller;
 
 import com.music.common.R;
 import com.music.model.request.CollectRequest;
+import com.music.model.request.CommentLikeRequest;
 import com.music.model.request.CommentRequest;
 import com.music.model.request.SongRequest;
 import com.music.service.CollectService;
+import com.music.service.CommentLikeService;
 import com.music.service.SongCommentService;
 import com.music.service.SongService;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,7 @@ public class SongController {
     private final SongService songService;
     private final CollectService collectService;
     private final SongCommentService songCommentService;
+    private final CommentLikeService commentLikeService;
 
     @PostMapping("/upload")
     public R uploadSong(
@@ -108,11 +111,24 @@ public class SongController {
 
     /**
      * 查询歌曲所有评论
-     * GET /song/comment/list?songId=1
+     * GET /song/comment/list?songId=1&userId=2 (userId可选，用于判断是否已点赞)
      */
     @GetMapping("/comment/list")
-    public R listComment(@RequestParam Integer songId) {
-        return songCommentService.listSongComment(songId);
+    public R listComment(
+            @RequestParam Integer songId,
+            @RequestParam(required = false) Integer userId
+    ) {
+        return songCommentService.listSongComment(songId, userId);
+    }
+
+    /**
+     * 歌曲评论点赞/取消点赞
+     * POST /song/comment/like
+     */
+    @PostMapping("/comment/like")
+    public R likeComment(@RequestBody CommentLikeRequest request) {
+        request.setCommentType("song");
+        return commentLikeService.likeComment(request);
     }
 
     @GetMapping("/hot")

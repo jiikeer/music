@@ -3,8 +3,10 @@ package com.music.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.music.common.R;
+import com.music.mapper.CommentLikeMapper;
 import com.music.mapper.PostCommentMapper;
 import com.music.mapper.UserMapper;
+import com.music.model.domain.CommentLike;
 import com.music.model.domain.PostComment;
 import com.music.model.domain.User;
 import com.music.model.request.CommentRequest;
@@ -22,6 +24,7 @@ public class PostCommentServiceImpl extends ServiceImpl<PostCommentMapper, PostC
 
     private final PostCommentMapper postCommentMapper;
     private final UserMapper userMapper;
+    private final CommentLikeMapper commentLikeMapper;
 
     /**
      * 新增帖子评论/回复评论
@@ -57,21 +60,26 @@ public class PostCommentServiceImpl extends ServiceImpl<PostCommentMapper, PostC
         return R.success("删除评论成功");
     }
 
-    /**
-     * 根据帖子id查询所有评论，附带评论者用户名、头像
-     */
     @Override
     public R listPostComment(Integer postId) {
+        return listPostComment(postId, null);
+    }
+
+    /**
+     * 根据帖子id查询所有评论，附带评论者用户名、头像、是否已点赞
+     */
+    @Override
+    public R listPostComment(Integer postId, Integer userId) {
         QueryWrapper<PostComment> wrapper = new QueryWrapper<>();
         wrapper.eq("post_id", postId).orderByDesc("create_time");
         List<PostComment> commentList = postCommentMapper.selectList(wrapper);
-        return R.success(null, buildCommentWithUser(commentList));
+        return R.success(null, buildCommentWithUser(commentList, userId));
     }
 
     /**
      * 封装评论+用户信息，和SongComment工具方法逻辑完全一致，避免N+1查询
      */
-    private List<Map<String, Object>> buildCommentWithUser(List<PostComment> comments) {
+    private List<Map<String, Object>> buildCommentWithUser(List<PostComment> comments, Integer userId) {
         if (comments == null || comments.isEmpty()) {
             return Collections.emptyList();
         }
@@ -89,6 +97,22 @@ public class PostCommentServiceImpl extends ServiceImpl<PostCommentMapper, PostC
                     .collect(Collectors.toMap(User::getId, Function.identity(), (a, b) -> a, LinkedHashMap::new));
         }
 
+        // 查询当前用户对这批评论的点赞状态
+        Set<Integer> likedCommentIds = new HashSet<>();
+        if (userId != null && !comments.isEmpty()) {
+            List<Integer> commentIds = comments.stream()
+                    .map(PostComment::getId)
+                    .collect(Collectors.toList());
+            QueryWrapper<CommentLike> likeWrapper = new QueryWrapper<>();
+            likeWrapper.eq("user_id", userId)
+                    .eq("comment_type", "post")
+                    .in("comment_id", commentIds);
+            List<CommentLike> likes = commentLikeMapper.selectList(likeWrapper);
+            likedCommentIds = likes.stream()
+                    .map(CommentLike::getCommentId)
+                    .collect(Collectors.toCollection(HashSet::new));
+        }
+
         List<Map<String, Object>> result = new ArrayList<>();
         for (PostComment comment : comments) {
             User user = userMap.get(comment.getUserId());
@@ -103,6 +127,7 @@ public class PostCommentServiceImpl extends ServiceImpl<PostCommentMapper, PostC
             // 用户信息
             map.put("username", user != null ? user.getUsername() : "");
             map.put("avatar", user != null ? user.getAvatar() : "");
+            map.put("isLiked", likedCommentIds.contains(comment.getId()));
             result.add(map);
         }
         return result;

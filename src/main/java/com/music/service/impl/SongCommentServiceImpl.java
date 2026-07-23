@@ -3,8 +3,10 @@ package com.music.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.music.common.R;
+import com.music.mapper.CommentLikeMapper;
 import com.music.mapper.SongCommentMapper;
 import com.music.mapper.UserMapper;
+import com.music.model.domain.CommentLike;
 import com.music.model.domain.SongComment;
 import com.music.model.domain.User;
 import com.music.model.request.CommentRequest;
@@ -21,6 +23,7 @@ import java.util.stream.Collectors;
 public class SongCommentServiceImpl extends ServiceImpl<SongCommentMapper, SongComment> implements SongCommentService {
     private final SongCommentMapper commentMapper;
     private final UserMapper userMapper;
+    private final CommentLikeMapper commentLikeMapper;
 
     @Override
     public R addSongComment(CommentRequest request) {
@@ -45,14 +48,19 @@ public class SongCommentServiceImpl extends ServiceImpl<SongCommentMapper, SongC
 
     @Override
     public R listSongComment(Integer songId) {
+        return listSongComment(songId, null);
+    }
+
+    @Override
+    public R listSongComment(Integer songId, Integer userId) {
         QueryWrapper<SongComment> wrapper = new QueryWrapper<>();
         wrapper.eq("song_id", songId).orderByDesc("create_time");
         List<SongComment> commentList = commentMapper.selectList(wrapper);
-        return R.success(null, buildCommentWithUser(commentList));
+        return R.success(null, buildCommentWithUser(commentList, userId));
     }
 
     // 拼接评论+发布用户信息，和你原有评论工具方法一致
-    private List<Map<String, Object>> buildCommentWithUser(List<SongComment> comments) {
+    private List<Map<String, Object>> buildCommentWithUser(List<SongComment> comments, Integer userId) {
         if (comments.isEmpty()) return Collections.emptyList();
         Set<Integer> userIds = comments.stream()
                 .map(SongComment::getUserId)
@@ -65,6 +73,23 @@ public class SongCommentServiceImpl extends ServiceImpl<SongCommentMapper, SongC
             userMap = userMapper.selectList(userWrapper).stream()
                     .collect(Collectors.toMap(User::getId, Function.identity(), (a, b) -> a, LinkedHashMap::new));
         }
+
+        // 查询当前用户对这批评论的点赞状态
+        Set<Integer> likedCommentIds = new HashSet<>();
+        if (userId != null && !comments.isEmpty()) {
+            List<Integer> commentIds = comments.stream()
+                    .map(SongComment::getId)
+                    .collect(Collectors.toList());
+            QueryWrapper<CommentLike> likeWrapper = new QueryWrapper<>();
+            likeWrapper.eq("user_id", userId)
+                    .eq("comment_type", "song")
+                    .in("comment_id", commentIds);
+            List<CommentLike> likes = commentLikeMapper.selectList(likeWrapper);
+            likedCommentIds = likes.stream()
+                    .map(CommentLike::getCommentId)
+                    .collect(Collectors.toCollection(HashSet::new));
+        }
+
         List<Map<String, Object>> result = new ArrayList<>();
         for (SongComment c : comments) {
             User u = userMap.get(c.getUserId());
@@ -78,6 +103,7 @@ public class SongCommentServiceImpl extends ServiceImpl<SongCommentMapper, SongC
             map.put("createTime", c.getCreateTime());
             map.put("username", u != null ? u.getUsername() : "");
             map.put("avatar", u != null ? u.getAvatar() : "");
+            map.put("isLiked", likedCommentIds.contains(c.getId()));
             result.add(map);
         }
         return result;
