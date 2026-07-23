@@ -136,4 +136,17 @@ public class SongController {
         return songService.hotSongs(limit);
     }
 
+    /**
+     * 按歌手用户ID获取已审核通过的作品（分页）
+     * GET /song/singer-songs?singerUserId=&page=&size=
+     */
+    @GetMapping("/singer-songs")
+    public R songsBySingerUserId(
+            @RequestParam Integer singerUserId,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "20") Integer size
+    ) {
+        return songService.songsBySingerUserId(singerUserId, page, size);
+    }
+
 }

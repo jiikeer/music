@@ -21,6 +21,12 @@ public class Song {
 
     private Integer singerId;
 
+    /** Singer name (redundant, fallback display) */
+    private String singer;
+
+    /** Singer user ID, references user.id; null for external singers */
+    private Integer singerUserId;
+
     private Integer status;
 
     private String auditReason;

@@ -26,6 +26,10 @@ public interface SongService extends IService<Song> {
 
     R hotSongs(Integer limit);
 
+    /** Get songs by singer user ID (approved only) */
     R singerSongs(Integer singerId);
+
+    /** Get approved songs by singer_user_id (for user homepage) */
+    R songsBySingerUserId(Integer singerUserId, Integer page, Integer size);
 
 }

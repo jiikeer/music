@@ -13,5 +13,11 @@ public class SongRequest {
 
     private String introduction;
 
+    /** Singer name (admin editable, ignored for normal users) */
+    private String singer;
+
+    /** Singer user ID (admin editable, ignored for normal users) */
+    private Integer singerUserId;
+
     private String lyric;
 }

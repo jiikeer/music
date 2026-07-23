@@ -65,6 +65,35 @@ public class SongServiceImpl extends ServiceImpl<SongMapper,Song>
 
             }
 
+            // ====== 歌手字段强制绑定逻辑 ======
+            // 普通用户上传：singer = 当前用户名, singerUserId = 当前用户ID
+            // 管理员上传：接受前端传入的 singer 和 singerUserId
+            Integer uploadUserId = request.getUserId();
+            if (uploadUserId != null) {
+                User uploadUser = userMapper.selectById(uploadUserId);
+                if (uploadUser != null) {
+                    // 管理员：保留前端传入的歌手名和 singerUserId
+                    // 普通用户：强制绑定为自己
+                    if (!"admin".equals(uploadUser.getUsername())) {
+                        song.setSinger(uploadUser.getUsername());
+                        song.setSingerUserId(uploadUserId);
+                    } else {
+                        // 管理员：前端传入 singer，自动匹配 singerUserId
+                        if (song.getSinger() != null && !song.getSinger().isEmpty()) {
+                            // 根据歌手名查用户表
+                            QueryWrapper<User> userWrapper = new QueryWrapper<>();
+                            userWrapper.eq("username", song.getSinger());
+                            User matchedUser = userMapper.selectOne(userWrapper);
+                            if (matchedUser != null) {
+                                song.setSingerUserId(matchedUser.getId());
+                            } else {
+                                song.setSingerUserId(null);
+                            }
+                        }
+                    }
+                }
+            }
+
             song.setStatus(0);
 
             song.setPlayCount(0);
@@ -124,6 +153,14 @@ public class SongServiceImpl extends ServiceImpl<SongMapper,Song>
                 oldSong.setPic(newCoverUrl);
             }
 
+            // 更新歌手字段时同步匹配 singerUserId
+            if (oldSong.getSinger() != null && !oldSong.getSinger().isEmpty()) {
+                QueryWrapper<User> userWrapper = new QueryWrapper<>();
+                userWrapper.eq("username", oldSong.getSinger());
+                User matchedUser = userMapper.selectOne(userWrapper);
+                oldSong.setSingerUserId(matchedUser != null ? matchedUser.getId() : null);
+            }
+
             oldSong.setUpdateTime(new Date());
             int rows = songMapper.updateById(oldSong);
             if (rows > 0) {
@@ -144,6 +181,16 @@ public class SongServiceImpl extends ServiceImpl<SongMapper,Song>
             Singer singer = singerMapper.selectById(song.getSingerId());
             if (singer != null) {
                 song.setSingerName(singer.getName());
+            }
+        }
+        // 优先从 singerUserId 关联查最新用户名
+        if (song != null && song.getSingerUserId() != null) {
+            User singerUser = userMapper.selectById(song.getSingerUserId());
+            if (singerUser != null) {
+                song.setSingerName(singerUser.getUsername());
+                if (song.getSinger() == null) {
+                    song.setSinger(singerUser.getUsername());
+                }
             }
         }
         return R.success("查询歌曲详情成功", song);
@@ -230,13 +277,14 @@ public class SongServiceImpl extends ServiceImpl<SongMapper,Song>
     }
 
     @Override
-    public R singerSongs(Integer singerId) {
+    public R songsBySingerUserId(Integer singerUserId, Integer page, Integer size) {
+        Page<Song> pageInfo = new Page<>(page != null ? page : 1, size != null ? size : 20);
         QueryWrapper<Song> wrapper = new QueryWrapper<>();
-        wrapper.eq("singer_id", singerId);
-        wrapper.eq("status", 1);
-        wrapper.orderByDesc("create_time");
-        List<Song> songs = songMapper.selectList(wrapper);
-        return R.success("查询成功", songs);
+        wrapper.eq("singer_user_id", singerUserId)
+               .eq("status", 1)
+               .orderByDesc("create_time");
+        songMapper.selectPage(pageInfo, wrapper);
+        return R.success("查询成功", pageInfo);
     }
 
 }
