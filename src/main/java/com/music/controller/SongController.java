@@ -61,7 +61,7 @@ public class SongController {
 
     }
 
-    @PostMapping("/detail")
+    @GetMapping("/detail")
     public R detail(Integer id){
         return songService.songDetail(id);
     }

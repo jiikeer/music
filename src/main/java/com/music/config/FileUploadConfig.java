@@ -40,7 +40,9 @@ public class FileUploadConfig {
 
         File dest=new File(uploadDir,newName);
 
-        file.transferTo(dest);
+        java.io.InputStream is = file.getInputStream();
+        java.nio.file.Files.copy(is, dest.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        is.close();
 
         return "/"+folder+"/"+newName;
     }
